@@ -9,3 +9,13 @@ export class UserError extends Error {
 		Object.setPrototypeOf(this, UserError.prototype);
 	}
 }
+
+export class ServerError extends Error {
+	statusCode = 400;
+	constructor(message: string, statusCode?: number) {
+		super(message);
+		this.name = "ServerError";
+		this.statusCode = statusCode || 400;
+		Object.setPrototypeOf(this, UserError.prototype);
+	}
+}
