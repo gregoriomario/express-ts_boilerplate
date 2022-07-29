@@ -7,11 +7,11 @@ import { checkPassword, checkPhoneNumber } from "../../../utils/regex";
 
 type BlockUserProps = {
 	Id: typeof makeId;
-	hash: (text: string) => string;
+	hashing: (text: string) => string;
 	sanitize: (text: string) => string;
 };
 
-export default function blockUser({ Id, hash, sanitize }: BlockUserProps) {
+export default function blockUser({ Id, hashing, sanitize }: BlockUserProps) {
 	return function makeUser({
 		id = Id().id,
 		name,
@@ -19,6 +19,8 @@ export default function blockUser({ Id, hash, sanitize }: BlockUserProps) {
 		phone,
 		email,
 		password,
+		salt,
+		hash,
 		isVerified = false,
 		isBlocked = false,
 		isAdmin = false,
@@ -41,9 +43,14 @@ export default function blockUser({ Id, hash, sanitize }: BlockUserProps) {
 		if (checkPhoneNumber(phone))
 			throw new UserError("Phone number invalid", 401);
 
-		if (checkPassword(password)) throw new Error("Password invalid");
-
-		const { salt, hash: passwordHash } = generateSaltHash(password);
+		// Check if hash or salt exist, if not generate them with currently provided password
+		if (!hash || !salt) {
+			if (checkPassword(password)) throw new Error("Password invalid");
+			const { salt: passwordSalt, hash: passwordHash } =
+				generateSaltHash(password);
+			salt = passwordSalt;
+			hash = passwordHash;
+		}
 
 		return Object.freeze({
 			getId: () => id,
@@ -52,7 +59,7 @@ export default function blockUser({ Id, hash, sanitize }: BlockUserProps) {
 			getBirth: () => birth,
 			getPhone: () => phone,
 			getPasswordSalt: () => salt,
-			getPasswordHash: () => passwordHash,
+			getPasswordHash: () => hash,
 			getHash: () => makeHash(),
 			getUpdatedAt: () => new Date(),
 			getCreatedAt: () => new Date(),
@@ -65,7 +72,7 @@ export default function blockUser({ Id, hash, sanitize }: BlockUserProps) {
 
 		// only name and email is necessary
 		function makeHash() {
-			return hash(name + email);
+			return hashing(name + email);
 		}
 	};
 }

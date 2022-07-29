@@ -7,4 +7,4 @@ function sanitize() {
 	return "";
 }
 
-export const buildUser = blockUser({ Id, hash, sanitize });
+export const buildUser = blockUser({ Id, hashing: hash, sanitize });
