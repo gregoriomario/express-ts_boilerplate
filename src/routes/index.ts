@@ -1,5 +1,5 @@
 import express from "express";
-import { basicResponse } from "../constants/response";
+import { basicResponse } from "../lib/constants/response";
 
 export const router = express.Router();
 

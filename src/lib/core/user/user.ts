@@ -1,5 +1,6 @@
 import { ServerError, UserError } from "../../../error/error.class";
 import { DocumentTime } from "../../../types";
+import { CRUDEntityBuild, DataStored } from "../../../types/data";
 import { User } from "../../../types/user";
 import { makeId } from "../../../utils/id";
 import { generateSaltHash } from "../../../utils/password";
@@ -7,11 +8,11 @@ import { checkPassword, checkPhoneNumber } from "../../../utils/regex";
 
 type BlockUserProps = {
 	Id: typeof makeId;
-	hashing: (text: string) => string;
+	hash: (text: string) => string;
 	sanitize: (text: string) => string;
 };
 
-export default function blockUser({ Id, hashing, sanitize }: BlockUserProps) {
+export default function blockUser({ Id, hash, sanitize }: BlockUserProps) {
 	return function makeUser({
 		id = Id().id,
 		name,
@@ -19,14 +20,15 @@ export default function blockUser({ Id, hashing, sanitize }: BlockUserProps) {
 		phone,
 		email,
 		password,
-		salt,
-		hash,
+		passwordSalt,
+		passwordHash,
 		isVerified = false,
 		isBlocked = false,
 		isAdmin = false,
 		scope = [],
-		isDeleted = false,
-	}: Omit<User, DocumentTime>) {
+	}: User & { id?: string }): CRUDEntityBuild<
+		DataStored<Omit<User, "password">>
+	> {
 		if (!name) throw new UserError("Name is required", 401);
 
 		if (!Id().isValid(id)) throw new ServerError("Invalid id", 400);
@@ -44,35 +46,35 @@ export default function blockUser({ Id, hashing, sanitize }: BlockUserProps) {
 			throw new UserError("Phone number invalid", 401);
 
 		// Check if hash or salt exist, if not generate them with currently provided password
-		if (!hash || !salt) {
+		if (!passwordHash || !passwordSalt) {
 			if (checkPassword(password)) throw new Error("Password invalid");
-			const { salt: passwordSalt, hash: passwordHash } =
-				generateSaltHash(password);
-			salt = passwordSalt;
-			hash = passwordHash;
+			const { salt, hash: pwh } = generateSaltHash(password);
+			passwordSalt = salt;
+			passwordHash = pwh;
 		}
 
 		return Object.freeze({
-			getId: () => id,
-			getEmail: () => email,
-			getName: () => name,
+			getId: () => sanitize(id),
+			getEmail: () => sanitize(email),
+			getName: () => sanitize(name),
 			getBirth: () => birth,
-			getPhone: () => phone,
-			getPasswordSalt: () => salt,
-			getPasswordHash: () => hash,
+			getPhone: () => sanitize(phone),
+			getPasswordSalt: () => passwordSalt,
+			getPasswordHash: () => passwordHash,
 			getHash: () => makeHash(),
 			getUpdatedAt: () => new Date(),
 			getCreatedAt: () => new Date(),
-			isDeleted: () => isDeleted,
-			isAdmin: () => isAdmin,
-			isVerified: () => isVerified,
-			isBlocked: () => isBlocked,
+			getIsAdmin: () => isAdmin,
+			getIsVerified: () => isVerified,
+			getIsBlocked: () => isBlocked,
 			getScope: () => scope,
+			markDeleted: () => {},
+			isDeleted: () => false,
 		});
 
 		// only name and email is necessary
 		function makeHash() {
-			return hashing(name + email);
+			return hash(name + email);
 		}
 	};
 }
