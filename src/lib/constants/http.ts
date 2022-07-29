@@ -25,7 +25,7 @@ export const httpRequest = (req: Request) => {
 
 export const httpReponse = (
 	overrides: HTTPResponseType,
-	error: unknown
+	error?: unknown
 ): HTTPResponseType => {
 	if (error) {
 		if (error instanceof Error) {
