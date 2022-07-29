@@ -2,6 +2,7 @@ import { ServerError, UserError } from "../../../error/error.class";
 import { DocumentTime } from "../../../types";
 import { User } from "../../../types/user";
 import { makeId } from "../../../utils/id";
+import { generateSaltHash } from "../../../utils/password";
 import { checkPassword, checkPhoneNumber } from "../../../utils/regex";
 
 type BlockUserProps = {
@@ -18,6 +19,11 @@ export default function blockUser({ Id, hash, sanitize }: BlockUserProps) {
 		phone,
 		email,
 		password,
+		isVerified = false,
+		isBlocked = false,
+		isAdmin = false,
+		scope = [],
+		isDeleted = false,
 	}: Omit<User, DocumentTime>) {
 		if (!name) throw new UserError("Name is required", 401);
 
@@ -37,16 +43,24 @@ export default function blockUser({ Id, hash, sanitize }: BlockUserProps) {
 
 		if (checkPassword(password)) throw new Error("Password invalid");
 
+		const { salt, hash: passwordHash } = generateSaltHash(password);
+
 		return Object.freeze({
 			getId: () => id,
 			getEmail: () => email,
 			getName: () => name,
 			getBirth: () => birth,
 			getPhone: () => phone,
+			getPasswordSalt: () => salt,
+			getPasswordHash: () => passwordHash,
 			getHash: () => makeHash(),
-            getUpdatedAt: () => new Date(),
-            getCreatedAt: () => new Date(),
-            isDeleted: () => false,
+			getUpdatedAt: () => new Date(),
+			getCreatedAt: () => new Date(),
+			isDeleted: () => isDeleted,
+			isAdmin: () => isAdmin,
+			isVerified: () => isVerified,
+			isBlocked: () => isBlocked,
+			getScope: () => scope,
 		});
 
 		// only name and email is necessary
