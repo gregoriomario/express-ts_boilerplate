@@ -11,11 +11,11 @@ export class UserError extends Error {
 }
 
 export class ServerError extends Error {
-	statusCode = 400;
+	statusCode = 500;
 	constructor(message: string, statusCode?: number) {
 		super(message);
 		this.name = "ServerError";
-		this.statusCode = statusCode || 400;
+		this.statusCode = statusCode || 500;
 		Object.setPrototypeOf(this, UserError.prototype);
 	}
 }

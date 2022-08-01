@@ -8,8 +8,7 @@ export default function makeGetUser({ gu }: { gu: typeof getUser }) {
 		const users = await getUser();
 		return httpReponse({
 			data: users,
-			success: true,
-			status: 200,
+			message: "Successfully retrieved users",
 			headers: {
 				"Content-Type": "application/json",
 			},

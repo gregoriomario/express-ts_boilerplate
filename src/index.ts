@@ -14,6 +14,8 @@ import helmet from "helmet";
 import { errorHandler, notFound } from "./middleware/error.middleware";
 import { UserError } from "./error/error.class";
 import { aysncHandler } from "./lib/asyncHandler";
+import expressCb from "./lib/expressHandler";
+import { getUsers } from "./lib/controller/user";
 const app = express();
 app.use(express.json());
 
@@ -27,6 +29,8 @@ app.use(express.raw());
 app.get("/", (req, res) => {
 	res.status(200).json({ success: true });
 });
+
+app.get('/new', expressCb(getUsers))
 
 app.get(
 	"/error",

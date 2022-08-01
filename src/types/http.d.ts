@@ -5,6 +5,7 @@ export type HTTPResponseType = {
 	headers: {
 		[key: string]: string;
 	};
+	message?: string;
 	status?: number;
 	data?: any;
 	error?: any;

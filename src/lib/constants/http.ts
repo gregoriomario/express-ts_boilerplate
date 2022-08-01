@@ -33,6 +33,7 @@ export const httpReponse = (
 				headers: {
 					"Content-Type": "application/json",
 				},
+				success: false,
 				status: 500,
 				error: {
 					message: error.message,
@@ -43,6 +44,7 @@ export const httpReponse = (
 				headers: {
 					"Content-Type": "application/json",
 				},
+				success: false,
 				status: 500,
 				error: {
 					message: JSON.stringify(error),
@@ -55,6 +57,7 @@ export const httpReponse = (
 		data: {},
 		success: true,
 		status: 200,
+		message: "",
 		headers: {
 			"Content-Type": "application/json",
 		},
